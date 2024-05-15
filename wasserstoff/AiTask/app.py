@@ -175,7 +175,7 @@ def process_query_with_chain_of_thought(user_query, previous_context):
     Returns:
     tuple: A tuple containing thought steps and final refined response.
     """
-    initial_response = rag_generate_response(user_query)  # initial response is the prompt
+    initial_response = rag_generate_response()  # initial response is the prompt
     thought_steps = develop_reasoning_steps(user_query, initial_response, previous_context)
     final_response = refine_response_based_on_thought_steps(user_query,thought_steps)
     return thought_steps, final_response

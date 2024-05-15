@@ -116,15 +116,6 @@ def rag_generate_response():
     Previous_context : {previous_context}
     """
     prompt = ChatPromptTemplate.from_template(template)
-    # chain = (
-    #     RunnableParallel({"user_query": RunnablePassthrough()})
-    #     | prompt
-    #     | model
-    #     | CommaSeparatedListOutputParser()
-    # )
-    # initial_response = chain.invoke(user_query)
-    # print("Initial Response: ", initial_response)
-    # return initial_response
     return prompt
     
 def develop_reasoning_steps(user_query, initial_prompt, previous_context):
@@ -150,22 +141,6 @@ def develop_reasoning_steps(user_query, initial_prompt, previous_context):
     print("thought_steps: ", thought_steps)
     return thought_steps
 
-    # template = """You are a helpfull assistant which generates the thought steps used for generating a response to a query based on the relevant documents and the previous context. Generate thought steps on how to answer to the user's previous context with the relevant documents. This helps the LLM to answer in the next step accurately. I am giving the initial_response as relevant documents and previous context is the chat history. Now write the thought steps using the relavant documents, and the previous context on how to answer to the query. Thought steps are the sub questions and their answers asked using the query, context and previous context. Thought steps should be in the format Question: , Response: :
-    
-
-    # Relevant Document : {reasoning_step}
-
-    # previous context: {previous_context}
-    # """
-    # prompt = ChatPromptTemplate.from_template(template)
-    # reason_chain = (
-    #     RunnableParallel({"user_query": RunnablePassthrough(),"relevant_doc": RunnablePassthrough(), "previous_context": RunnablePassthrough()})
-    #     | prompt
-    #     | model
-    #     | StrOutputParser()
-    # )
-    # thought_steps = reason_chain.invoke({'user_query' : user_query, 'relevant_doc' : relevant_doc,'previous_context' : previous_context})
-    # return thought_steps
 
 def refine_response_based_on_thought_steps(user_query, thought_steps):
     """
@@ -182,18 +157,11 @@ def refine_response_based_on_thought_steps(user_query, thought_steps):
     all_retrieved_content = ""
     
     for thought_step in thought_steps:
-        # print(langchain_chroma.invoke(thought_step))
         retrieved_content = langchain_chroma.invoke(thought_step)
         for i in retrieved_content:
             all_retrieved_content+=i.page_content
         all_retrieved_content+="\n"
 
-    # print("--------------------------------------------------")
-    # print("Retrieved: ", retrieved_content[0])
-    # print("Len Retrieved: ", len(retrieved_content))
-    # print("----------------------------")
-    # print("All Retrieved Content: ",all_retrieved_content)
-    # print("Len Retrieved: ", len(retrieved_content[0]))
     template = """You are a helpful assistant which answers the query from the context. If the context does not provide the answer simply reply I cannot answer this and give a suggestion to refer the website. DO NOT say that 'there is no information in the context' or 'the answer from the context is this.' phrases, instead give directly the solution or answer I cannot answer this and give a suggestion to refer the website or similar kind of text based on the context.:
     
     query : {user_query}
@@ -222,7 +190,7 @@ def process_query_with_chain_of_thought(user_query, previous_context):
     Returns:
     tuple: A tuple containing thought steps and final refined response.
     """
-    initial_response = rag_generate_response(user_query)  # initial response is the prompt
+    initial_response = rag_generate_response()  # initial response is the prompt
     thought_steps = develop_reasoning_steps(user_query, initial_response, previous_context)
     final_response = refine_response_based_on_thought_steps(user_query,thought_steps)
     return thought_steps, final_response
